@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: checkout repo content
+      - name: Checkout repo content
         uses: actions/checkout@v2 # checkout the repository content to github runner.
-      - name: setup python
+      - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: 3.9 #install the python needed
-      - name: execute py script # run the run.py to get the latest data
+      - name: Execute py script # run the run.py to get the latest data
         run: |
           pip install pandas
           pip install bokeh
@@ -25,8 +25,8 @@ jobs:
           echo ...finished script...
         env:
           key: ${{ secrets.key }} # if run.py requires passwords..etc, set it as secrets
-      - name: export index
-        run: |
-          echo ...done!
-        
-      #.... # use crosponding script or actions to help export.
+      - name: Commit html plots to github
+        uses: stefanzweifel/git-auto-commit-action@v4.6.0
+        with:
+          commit_message: update plot html
+          file_pattern: ex_plot.html 
