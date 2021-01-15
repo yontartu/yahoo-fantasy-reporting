@@ -19,6 +19,8 @@ jobs:
           python-version: 3.9 #install the python needed
       - name: execute py script # run the run.py to get the latest data
         run: |
+          pip install pandas
+          pip install bokeh
           python test_script.py
           echo ...finished script...
         env:
