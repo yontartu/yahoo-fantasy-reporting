@@ -30,7 +30,7 @@ import yahoo_fantasy_api as yfa
 # In[3]:
 
 
-sc = OAuth2(None, None, from_file='secrets/yahoo_creds.json')
+sc = OAuth2(None, None, from_file='/home/runner/secrets/yahoo_creds.json')
 print('sc:')
 print(sc)
 
