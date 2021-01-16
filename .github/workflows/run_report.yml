@@ -1,8 +1,8 @@
-name: report
+name: Report
 
 on:
   schedule:
-    - cron:  '*/5 * * * *'
+    - cron:  '*/15 * * * *'
 
   workflow_dispatch:
   
@@ -17,14 +17,25 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9 #install the python needed
+      - uses: actions/checkout@v2
+      - name: Decrypt large secret
+        run: ./.github/scripts/decrypt_secret.sh
+        env:
+          YAHOO_CRED_PHRASE: ${{ secrets.YAHOO_CRED_PHRASE }}
+      # This command is just an example to show your secret being printed
+      # Ensure you remove any print statements of your secrets. GitHub does
+      # not hide secrets that use this workaround.
+      - name: Test printing your secret (Remove this step in production)
+        run: cat $HOME/secrets/my_secret.json    
+          
       - name: Execute py script # run the run.py to get the latest data
         run: |
           pip install pandas
           pip install bokeh
           python test_script.py
           echo ...finished script...
-        env:
-          key: ${{ secrets.key }} # if run.py requires passwords..etc, set it as secrets
+        #env:
+          #key: ${{ secrets.key }} # if run.py requires passwords..etc, set it as secrets
       - name: Commit html plots to github
         uses: stefanzweifel/git-auto-commit-action@v4.6.0
         with:
