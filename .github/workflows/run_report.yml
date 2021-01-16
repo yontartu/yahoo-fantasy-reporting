@@ -25,19 +25,16 @@ jobs:
       # This command is just an example to show your secret being printed
       # Ensure you remove any print statements of your secrets. GitHub does
       # not hide secrets that use this workaround.
-      - name: Test printing your secret (Remove this step in production)
-        run: cat $HOME/secrets/yahoo_creds.json    
-          
+      #- name: Test printing your secret (Remove this step in production)
+        #run: cat $HOME/secrets/yahoo_creds.json              
       - name: Execute py script # run the run.py to get the latest data
         run: |
           pip install pandas
           pip install bokeh
-          python test_script.py
-          echo ...finished script...
-        #env:
-          #key: ${{ secrets.key }} # if run.py requires passwords..etc, set it as secrets
+          pip install yahoo_fantasy_api
+          python fantasy_report.py
       - name: Commit html plots to github
         uses: stefanzweifel/git-auto-commit-action@v4.6.0
         with:
-          commit_message: update plot html
-          file_pattern: ex_plot.html 
+          commit_message: update index.html
+          file_pattern: index.html 
