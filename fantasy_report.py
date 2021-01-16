@@ -283,17 +283,19 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team='Flat Earther
                    line_color=['blue'] + ['grey'] * 11, 
                    alpha=[1] + [0.5] * 11, 
                    line_width=2)
+    r2 = p.line('week', f'{stat}',
+           source=plot_df[plot_df.team_name == opps[-1]],
+           color='red', alpha=1, line_width=2)
     p.circle('week', f'{stat}', 
              source=plot_df[(plot_df.team_name == plot_team)], 
              color='blue', fill_color='white', size=12)
     p.circle('week', f'{stat}', 
              source=plot_df[(plot_df.team_name.isin(opps)) & (plot_df.opponent_team_name  == plot_team)], 
              color='red', fill_color='white', size=12)
-    # p.circle(xs[1], opp_vals, color='red', fill_color='white', size=10)
-
 
     legend = Legend(items=[
         LegendItem(label=plot_team, renderers=[r], index=0),
+        LegendItem(label=opps[-1], renderers=[r2], index=1)
     ])
 
     p.add_tools(HoverTool(
@@ -304,6 +306,8 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team='Flat Earther
     ))
 
     p.add_layout(legend)
+    p.xaxis.ticker = plot_df.week.unique()
+    
     if save_filepath:
         print('Saving to', save_filepath)
         bokeh.plotting.output_file(save_filepath)
@@ -311,7 +315,6 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team='Flat Earther
     else:
         show(p)
     return p
-
 
 # In[65]:
 
