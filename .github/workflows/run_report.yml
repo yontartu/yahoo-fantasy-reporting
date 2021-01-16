@@ -29,6 +29,7 @@ jobs:
         #run: cat $HOME/secrets/yahoo_creds.json              
       - name: Execute py script # run the run.py to get the latest data
         run: |
+          pip install jupyter
           pip install pandas
           pip install bokeh
           pip install yahoo_fantasy_api
