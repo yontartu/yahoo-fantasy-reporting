@@ -34,15 +34,15 @@ jobs:
           pwd              
 #       - name: Checkout repo content
 #         uses: actions/checkout@v2 # checkout the repository content to github runner.
-#       - name: Execute py script # run the run.py to get the latest data
-#         run: |
-#           pip install jupyter
-#           pip install pandas
-#           pip install bokeh
-#           pip install yahoo_fantasy_api
-#           python fantasy_report.py
-#       - name: Commit html plots to github
-#         uses: stefanzweifel/git-auto-commit-action@v4.6.0
-#         with:
-#           commit_message: update index.html
-#           file_pattern: index.html 
+      - name: Execute py script # run the run.py to get the latest data
+        run: |
+          pip install jupyter
+          pip install pandas
+          pip install bokeh
+          pip install yahoo_fantasy_api
+          python fantasy_report.py
+      - name: Commit html plots to github
+        uses: stefanzweifel/git-auto-commit-action@v4.6.0
+        with:
+          commit_message: update index.html
+          file_pattern: index.html 
