@@ -318,7 +318,7 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team='Flat Earther
 
 plot_list = []
 for category in ['FG_PCT', 'FT_PCT', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO']:
-    p = plot_weekly_stats(plot_df=plot_df, stat=category, save_filepath=f"img/{category}_plot.html") #, plot_team='Olly-G Anunoby')
+    p = plot_weekly_stats(plot_df=df, stat=category, save_filepath=f"img/{category}_plot.html") #, plot_team='Olly-G Anunoby')
     plot_list.append(p)
 
 
