@@ -27,6 +27,8 @@ jobs:
       # not hide secrets that use this workaround.
       #- name: Test printing your secret (Remove this step in production)
         #run: cat $HOME/secrets/yahoo_creds.json              
+      - name: Checkout repo content
+        uses: actions/checkout@v2 # checkout the repository content to github runner.
       - name: Execute py script # run the run.py to get the latest data
         run: |
           pip install jupyter
