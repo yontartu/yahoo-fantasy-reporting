@@ -1,6 +1,6 @@
 # Yahoo Fantasy Basketball Automated Reporting
 
-Using GitHub Actions. Inspired by `rdmurphy`'s [ActBlue tracker](https://github.com/rdmurphy/actblue-ticker-tracker/blob/main/.github/workflows/track.yaml).
+Using GitHub Actions. Inspired by `rdmurphy`'s [ActBlue tracker](https://github.com/rdmurphy/actblue-ticker-tracker/).
 
 #### Helpful links
 - [Workflows with triggers](https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
