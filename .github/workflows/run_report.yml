@@ -25,19 +25,24 @@ jobs:
       # This command is just an example to show your secret being printed
       # Ensure you remove any print statements of your secrets. GitHub does
       # not hide secrets that use this workaround.
-      #- name: Test printing your secret (Remove this step in production)
-        #run: cat $HOME/secrets/yahoo_creds.json              
-      - name: Checkout repo content
-        uses: actions/checkout@v2 # checkout the repository content to github runner.
-      - name: Execute py script # run the run.py to get the latest data
+      - name: Test printing your secret (Remove this step in production)
         run: |
-          pip install jupyter
-          pip install pandas
-          pip install bokeh
-          pip install yahoo_fantasy_api
-          python fantasy_report.py
-      - name: Commit html plots to github
-        uses: stefanzweifel/git-auto-commit-action@v4.6.0
-        with:
-          commit_message: update index.html
-          file_pattern: index.html 
+          cat $HOME/secrets/yahoo_creds.json
+          pwd
+          cd $HOME/secrets
+          ls
+          pwd              
+#       - name: Checkout repo content
+#         uses: actions/checkout@v2 # checkout the repository content to github runner.
+#       - name: Execute py script # run the run.py to get the latest data
+#         run: |
+#           pip install jupyter
+#           pip install pandas
+#           pip install bokeh
+#           pip install yahoo_fantasy_api
+#           python fantasy_report.py
+#       - name: Commit html plots to github
+#         uses: stefanzweifel/git-auto-commit-action@v4.6.0
+#         with:
+#           commit_message: update index.html
+#           file_pattern: index.html 
