@@ -1,10 +1,10 @@
 name: Report
 
-# on:
-#   schedule:
-#     - cron:  '*/15 * * * *'
+on:
+  schedule:
+    - cron:  '*/120 * * * *'
 
-#   workflow_dispatch:
+  workflow_dispatch:
   
 jobs:
   build:
@@ -12,11 +12,11 @@ jobs:
     
     steps:
       - name: Checkout repo content
-        uses: actions/checkout@v2 # checkout the repository content to github runner.
+        uses: actions/checkout@v2  # checkout the repository content to github runner.
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9 #install the python needed
+          python-version: 3.9  # install the python needed
       - uses: actions/checkout@v2
       - name: Decrypt large secret
         run: ./.github/scripts/decrypt_secret.sh
@@ -32,7 +32,7 @@ jobs:
 #           cd $HOME/secrets
 #           ls
 #           pwd              
-      - name: Execute py script # run the run.py to get the latest data
+      - name: Execute py script  # run .py to get the latest data
         run: |
           pip install jupyter
           pip install pandas

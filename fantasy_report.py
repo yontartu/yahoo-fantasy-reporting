@@ -1,12 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[26]:
-
-
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
 import datetime
 import json
 import bokeh
@@ -15,46 +8,24 @@ from bokeh.palettes import Spectral11
 from bokeh.models import Legend, LegendItem
 from bokeh.models.tools import HoverTool
 output_notebook()
-
 from yahoo_oauth import OAuth2
 import yahoo_fantasy_api as yfa
-
-
-# In[2]:
-
-
-# with open('yahoo_creds.json', 'rb') as f:
-#     YAHOO_CREDS = json.load(f)
-
-
-# In[3]:
 
 
 sc = OAuth2(None, None, from_file='/home/runner/secrets/yahoo_creds.json')
 print('sc:')
 print(sc)
 
-# In[4]:
-
-
 gm = yfa.Game(sc, 'nba')
-gm.league_ids(year=2020)
+gm.league_ids(year=2021)
+
+# set constants
+LEAGUE_ID = '410.l.21086'
+TEAM_NAME = 'The Durantulas'
 
 
-# In[5]:
-
-
-lg = gm.to_league('402.l.27278')
+lg = gm.to_league(LEAGUE_ID)
 lg.stat_categories()
-
-
-# In[6]:
-
-
-lg.teams()['402.l.27278.t.3']['managers'][0]['manager']['nickname']
-
-
-# In[7]:
 
 
 teams_list = []
@@ -67,14 +38,8 @@ for team_key, team_data in lg.teams().items():
     teams_list.append([team_key, team_id, name, nickname])
 
 
-# In[8]:
-
-
 team_mapping = pd.DataFrame(teams_list, columns=['team_key', 'team_id', 'team_name', 'nickname'])
 team_mapping
-
-
-# In[9]:
 
 
 stat_id_mapping = {'9004003': 'FGM/FGA',
@@ -93,9 +58,6 @@ stat_id_mapping
 
 
 # #### Build dictionary of weekly matchups (between team ids) and results
-
-# In[10]:
-
 
 all_results = pd.DataFrame()
 
@@ -136,23 +98,10 @@ for week in np.arange(1, lg.current_week()+1):
 all_results = all_results.reset_index(drop=True)
 all_results.team_id = all_results.team_id.astype(int)
 
-
-# In[11]:
-
-
-all_results
-
-
-# In[12]:
-
-
 all_results.groupby('week')['score_final'].sum()  # check looks good
 
 
 # #### Build stats summary table, at the team-week level
-
-# In[13]:
-
 
 df = pd.DataFrame(columns = ['week', 'team_id'] + list(stat_id_mapping.values()))
 
@@ -190,14 +139,7 @@ df['FTA'] = df['FTM/FTA'].str.split('/').apply(lambda x: x[1])
 df = df.drop(['FGM/FGA', 'FTM/FTA'], axis=1)
 all_stats = df
 
-
-# In[14]:
-
-
 all_stats.info()
-
-
-# In[15]:
 
 
 for colname in ['week', 'team_id', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO', 'FGM', 'FGA', 'FTM', 'FTA']:
@@ -206,37 +148,19 @@ for colname in ['week', 'team_id', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO
 for colname in ['FG%', 'FT%']:
         all_stats[colname] = all_stats[colname].astype(float)
 
-
-# In[16]:
-
-
 all_stats.info()
 
 
-# In[17]:
-
-
 all_stats.groupby(['week']).mean()
-
-
-# In[18]:
-
 
 df = pd.merge(all_stats, all_results, on=['week', 'team_name', 'team_id'], how='left')
 print(df.shape)
 df.head()
 
-
-# In[19]:
-
-
 df.groupby(['week', 'score_final']).mean()
 
 
 # #### Plot some line graphs
-
-# In[62]:
-
 
 def get_weekday(x):
     if x == 0:
@@ -254,11 +178,7 @@ def get_weekday(x):
     else:
         return 'Sun'
 
-
-# In[64]:
-
-
-def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team='Flat Earthers'):
+def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
     """
     """
     plot_df = plot_df.rename(columns={'FG%': 'FG_PCT', 'FT%': 'FT_PCT'})
@@ -316,24 +236,13 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team='Flat Earther
         show(p)
     return p
 
-# In[65]:
-
-
 plot_list = []
 for category in ['FG_PCT', 'FT_PCT', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO']:
     p = plot_weekly_stats(plot_df=df, stat=category) #, plot_team='Olly-G Anunoby')
     plot_list.append(p)
-
-
-# In[66]:
-
+    
 
 bokeh.plotting.output_file('index.html')
 show(bokeh.layouts.gridplot(plot_list, ncols=2))
-
-
-# In[ ]:
-
-
 
 
