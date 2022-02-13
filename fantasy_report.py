@@ -12,16 +12,30 @@ from yahoo_oauth import OAuth2
 import yahoo_fantasy_api as yfa
 
 
-sc = OAuth2(None, None, from_file='/home/runner/secrets/yahoo_creds.json')
-print('sc:')
-print(sc)
+def authenticate_yahoo(run_on_gh=True):
+    if run_on_gh:
+        sc = OAuth2(None, None, from_file='/home/runner/secrets/yahoo_creds.json')
+        print('sc:', sc)
+    else:  # run locally
+        sc = OAuth2(None, None, from_file='yahoo_creds.json')
+        print('sc:', sc)
+    return sc
+
+
+sc = authenticate_yahoo()
+
+# +
+# sc = OAuth2(None, None, from_file='/home/runner/secrets/yahoo_creds.json')
+# print('sc:')
+# print(sc)
+# -
 
 gm = yfa.Game(sc, 'nba')
 gm.league_ids(year=2021)
 
 # set constants
 LEAGUE_ID = '410.l.21086'
-TEAM_NAME = 'The Durantulas'
+TEAM_NAME = 'Backpack Kids'  
 
 
 lg = gm.to_league(LEAGUE_ID)
@@ -64,14 +78,33 @@ all_results = pd.DataFrame()
 for week in np.arange(1, lg.current_week()+1):
     for idx, m in lg.matchups(week=week)['fantasy_content']['league'][1]['scoreboard']['0']['matchups'].items():
         if idx in ['0', '1', '2', '3', '4', '5']:  # 12 teams, each week as 6 matchups
+            
+            t1_key = m['matchup']['0']['teams']['0']['team'][0][0]['team_key']
+            t1_name = m['matchup']['0']['teams']['0']['team'][0][2]['name']
+#             print(t1_key)
+#             print(t1_name)
+            t2_key = m['matchup']['0']['teams']['1']['team'][0][0]['team_key']
+            t2_name = m['matchup']['0']['teams']['1']['team'][0][2]['name']
+#             print(t2_key)
+#             print(t2_name)
+            teams_df = pd.DataFrame({'team_key': [t1_key, t2_key]})
+            
             stat_winners = m['matchup']['stat_winners']
             rows_list = []
             for row in stat_winners:
                 rows_list.append(row['stat_winner'])
             week_result_df = pd.DataFrame(rows_list)
-            week_result = week_result_df.winner_team_key.value_counts().reset_index().rename(columns={'index': 'team_key', 
-                                                                                       'winner_team_key': 'score_raw'
-                                                                                      })
+            week_result = week_result_df.winner_team_key.value_counts().reset_index().rename(
+                columns={'index': 'team_key', 
+                         'winner_team_key': 'score_raw'})
+            
+            week_result = pd.merge(
+                teams_df, 
+                week_result,
+                how='left',
+                on='team_key')
+            week_result.score_raw.fillna(0, inplace=True)
+            
             if week_result.loc[0]['score_raw'] > week_result.loc[1]['score_raw']:
                 results_list = [1, 0]
             elif week_result.loc[0]['score_raw'] < week_result.loc[1]['score_raw']:
@@ -94,7 +127,7 @@ for week in np.arange(1, lg.current_week()+1):
                                      on='opponent_team_key')
             week_result = week_result[['week', 'team_name', 'team_id', 'opponent_team_name', 'opponent_team_id', 'score_final', 'score_raw']]
             all_results = pd.concat([all_results, week_result], sort=False)
-            
+
 all_results = all_results.reset_index(drop=True)
 all_results.team_id = all_results.team_id.astype(int)
 
@@ -107,7 +140,7 @@ df = pd.DataFrame(columns = ['week', 'team_id'] + list(stat_id_mapping.values())
 
 for week in np.arange(1, lg.current_week()+1):
     for idx, m in lg.matchups(week=week)['fantasy_content']['league'][1]['scoreboard']['0']['matchups'].items():
-        if idx in ['0', '1', '2', '3', '4', '5']:  # 12 teams, each week as 6 matchups
+        if idx in ['0', '1', '2', '3', '4']:  # 10 teams, each week as 5 matchups
             teams = m['matchup']['0']['teams']
 
             # create stats summary, by team and week
@@ -143,10 +176,10 @@ all_stats.info()
 
 
 for colname in ['week', 'team_id', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO', 'FGM', 'FGA', 'FTM', 'FTA']:
-        all_stats[colname] = all_stats[colname].astype(int)
-        
+    all_stats[colname] = all_stats[colname].astype(int)
+
 for colname in ['FG%', 'FT%']:
-        all_stats[colname] = all_stats[colname].astype(float)
+    all_stats[colname] = all_stats[colname].astype(float)
 
 all_stats.info()
 
@@ -240,7 +273,7 @@ plot_list = []
 for category in ['FG_PCT', 'FT_PCT', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO']:
     p = plot_weekly_stats(plot_df=df, stat=category) #, plot_team='Olly-G Anunoby')
     plot_list.append(p)
-    
+
 
 bokeh.plotting.output_file('index.html')
 show(bokeh.layouts.gridplot(plot_list, ncols=2))
