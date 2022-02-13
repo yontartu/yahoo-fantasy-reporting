@@ -1,0 +1,46 @@
+name: Games & Injury Report
+
+on:
+  schedule:
+    - cron:  '*/120 * * * *'
+
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo content
+        uses: actions/checkout@v2  # checkout the repository content to github runner.
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9  # install the python needed
+      - uses: actions/checkout@v2
+      - name: Decrypt large secret
+        run: ./.github/scripts/decrypt_secret.sh
+        env:
+          YAHOO_CRED_PHRASE: ${{ secrets.YAHOO_CRED_PHRASE }}
+      # This command is just an example to show your secret being printed
+      # Ensure you remove any print statements of your secrets. GitHub does
+      # not hide secrets that use this workaround.
+#       - name: Test printing your secret (Remove this step in production)
+#         run: |
+#           cat $HOME/secrets/yahoo_creds.json
+#           pwd
+#           cd $HOME/secrets
+#           ls
+#           pwd              
+      - name: Execute py script  # run .py to get the latest data
+        run: |
+          pip install jupyter
+          pip install pandas
+          pip install bokeh
+          pip install yahoo_fantasy_api
+          python games_injury_report.py
+      - name: Commit CSVs to github
+        uses: stefanzweifel/git-auto-commit-action@v4.6.0
+        with:
+          commit_message: update csvs with automated workflow
+          # file_pattern: *.csv 
