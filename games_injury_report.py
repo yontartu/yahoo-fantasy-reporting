@@ -6,7 +6,7 @@ import numpy as np
 import datetime
 import json
 import bokeh
-import pretty_errors
+# import pretty_errors
 from bokeh.plotting import figure, output_notebook, show#, vplot
 from bokeh.palettes import Spectral11
 from bokeh.models import Legend, LegendItem
