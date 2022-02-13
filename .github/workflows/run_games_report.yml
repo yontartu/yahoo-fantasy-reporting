@@ -38,6 +38,7 @@ jobs:
           pip install pandas
           pip install bokeh
           pip install yahoo_fantasy_api
+          pip install nba_api
           python games_injury_report.py
       - name: Commit CSVs to github
         uses: stefanzweifel/git-auto-commit-action@v4.6.0
