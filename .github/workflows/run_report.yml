@@ -1,4 +1,4 @@
-name: Report
+name: Fantasy Dashboard Report
 
 on:
   schedule:
