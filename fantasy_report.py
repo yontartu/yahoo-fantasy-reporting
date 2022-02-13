@@ -24,18 +24,13 @@ def authenticate_yahoo(run_on_gh=True):
 
 sc = authenticate_yahoo()
 
-# +
-# sc = OAuth2(None, None, from_file='/home/runner/secrets/yahoo_creds.json')
-# print('sc:')
-# print(sc)
-# -
-
 gm = yfa.Game(sc, 'nba')
 gm.league_ids(year=2021)
 
 # set constants
 LEAGUE_ID = '410.l.21086'
 TEAM_NAME = 'Backpack Kids'  
+TEAM_ID = '410.l.21086.t.8'
 
 
 lg = gm.to_league(LEAGUE_ID)
@@ -71,12 +66,34 @@ stat_id_mapping = {'9004003': 'FGM/FGA',
 stat_id_mapping
 
 
+# #### Get next week's opponent
+
+# +
+for idx, m in lg.matchups(week=lg.current_week()+1)['fantasy_content']['league'][1]['scoreboard']['0']['matchups'].items():
+    if idx in ['0', '1', '2', '3', '4', '5']:  # 12 teams, each week as 6 matchups
+        
+        t1_key = m['matchup']['0']['teams']['0']['team'][0][0]['team_key']
+        t1_name = m['matchup']['0']['teams']['0']['team'][0][2]['name']
+        t2_key = m['matchup']['0']['teams']['1']['team'][0][0]['team_key']
+        t2_name = m['matchup']['0']['teams']['1']['team'][0][2]['name']
+        
+        if TEAM_ID in [t1_key, t2_key]:
+            next_df = pd.DataFrame({'team_key': [t1_key, t2_key], 'team_name': [t1_name, t2_name]})
+            
+next_week_opp_id = next_df[next_df.team_key != TEAM_ID].team_key.iloc[0]
+next_week_opp_name = next_df[next_df.team_key != TEAM_ID].team_name.iloc[0]
+print(next_week_opp_id)
+print(next_week_opp_name)
+# -
+
 # #### Build dictionary of weekly matchups (between team ids) and results
 
 all_results = pd.DataFrame()
 
 for week in np.arange(1, lg.current_week()+1):
+#     print(week)
     for idx, m in lg.matchups(week=week)['fantasy_content']['league'][1]['scoreboard']['0']['matchups'].items():
+#         print(idx)
         if idx in ['0', '1', '2', '3', '4', '5']:  # 12 teams, each week as 6 matchups
             
             t1_key = m['matchup']['0']['teams']['0']['team'][0][0]['team_key']
@@ -192,6 +209,8 @@ df.head()
 
 df.groupby(['week', 'score_final']).mean()
 
+df
+
 
 # #### Plot some line graphs
 
@@ -211,7 +230,77 @@ def get_weekday(x):
     else:
         return 'Sun'
 
-def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
+# +
+# def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
+#     """
+#     """
+#     plot_df = plot_df.rename(columns={'FG%': 'FG_PCT', 'FT%': 'FT_PCT'})
+#     runtime = datetime.datetime.now()
+
+#     p = figure(title=f'{stat}   (last updated: {get_weekday(runtime.weekday())} {runtime.strftime("%m/%d %H:%M")})',
+#                  x_axis_label='Week',
+#                  y_axis_label=stat,
+#                  width=600,
+#                  height=400)
+
+#     xs = [plot_df.week.unique()] * 12
+
+#     ys = [plot_df[plot_df.team_name == plot_team][stat].values]
+#     for team in plot_df[plot_df.team_name != plot_team].team_name.unique():
+#         ys.append(plot_df[plot_df.team_name == team][stat].values)
+
+#     opps = plot_df[plot_df.team_name == plot_team]['opponent_team_name'].to_numpy()
+#     opp_vals = plot_df[(plot_df.team_name.isin(opps)) & (plot_df.opponent_team_name  == plot_team)][stat].values
+
+#     r = p.multi_line(xs, ys, 
+#                    line_color=['blue'] + ['grey'] * 11, 
+#                    alpha=[1] + [0.2] * 11, 
+#                    line_width=2)
+#     r2 = p.line('week', f'{stat}',
+#            source=plot_df[plot_df.team_name == opps[-1]],
+#            color='red', alpha=1, line_width=2)
+#     p.circle('week', f'{stat}', 
+#              source=plot_df[(plot_df.team_name == plot_team)], 
+#              color='blue', fill_color='white', size=12)
+#     p.circle('week', f'{stat}', 
+#              source=plot_df[(plot_df.team_name.isin(opps)) & (plot_df.opponent_team_name  == plot_team)], 
+#              color='red', fill_color='white', size=12)
+    
+#     # add next opponent
+    
+
+#     legend = Legend(items=[
+#         LegendItem(label=plot_team, renderers=[r], index=0),
+#         LegendItem(label=opps[-1], renderers=[r2], index=1)
+#     ])
+
+#     p.add_tools(HoverTool(
+#         tooltips=[
+#             ('Team', '@team_name'),
+#             (f'{stat}', f'@{stat}')
+#         ]
+#     ))
+
+#     p.add_layout(legend)
+#     p.xaxis.ticker = plot_df.week.unique()
+    
+#     if save_filepath:
+#         print('Saving to', save_filepath)
+#         bokeh.plotting.output_file(save_filepath)
+#         show(p)
+#     else:
+#         show(p)
+#     return p
+
+# +
+# plot_list = []
+# for category in ['FG_PCT', 'FT_PCT', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO']:
+#     p = plot_weekly_stats(plot_df=df, stat=category)
+#     plot_list.append(p)
+# -
+
+
+def plot_weekly_stats(plot_df, stat, next_opp_id, next_opp_name, save_filepath=None, plot_team=TEAM_NAME):
     """
     """
     plot_df = plot_df.rename(columns={'FG%': 'FG_PCT', 'FT%': 'FT_PCT'})
@@ -223,7 +312,7 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
                  width=600,
                  height=400)
 
-    xs = [plot_df.week.unique()] * 12
+    xs = [plot_df.week.unique()] * 10
 
     ys = [plot_df[plot_df.team_name == plot_team][stat].values]
     for team in plot_df[plot_df.team_name != plot_team].team_name.unique():
@@ -232,9 +321,14 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
     opps = plot_df[plot_df.team_name == plot_team]['opponent_team_name'].to_numpy()
     opp_vals = plot_df[(plot_df.team_name.isin(opps)) & (plot_df.opponent_team_name  == plot_team)][stat].values
 
+    # add next opponent
+    r3 = p.line('week', f'{stat}',
+           source=plot_df[plot_df.team_name == next_opp_name],
+           color='orange', alpha=0.5, line_width=2)    
+    
     r = p.multi_line(xs, ys, 
-                   line_color=['blue'] + ['grey'] * 11, 
-                   alpha=[1] + [0.5] * 11, 
+                   line_color=['blue'] + ['grey'] * 9, 
+                   alpha=[1] + [0.1] * 9, 
                    line_width=2)
     r2 = p.line('week', f'{stat}',
            source=plot_df[plot_df.team_name == opps[-1]],
@@ -245,10 +339,11 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
     p.circle('week', f'{stat}', 
              source=plot_df[(plot_df.team_name.isin(opps)) & (plot_df.opponent_team_name  == plot_team)], 
              color='red', fill_color='white', size=12)
-
+    
     legend = Legend(items=[
         LegendItem(label=plot_team, renderers=[r], index=0),
-        LegendItem(label=opps[-1], renderers=[r2], index=1)
+        LegendItem(label=opps[-1], renderers=[r2], index=1),
+        LegendItem(label=next_opp_name, renderers=[r3], index=1)        
     ])
 
     p.add_tools(HoverTool(
@@ -260,6 +355,7 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
 
     p.add_layout(legend)
     p.xaxis.ticker = plot_df.week.unique()
+    p.legend.click_policy="hide"
     
     if save_filepath:
         print('Saving to', save_filepath)
@@ -271,11 +367,15 @@ def plot_weekly_stats(plot_df, stat, save_filepath=None, plot_team=TEAM_NAME):
 
 plot_list = []
 for category in ['FG_PCT', 'FT_PCT', '3PTM', 'PTS', 'REB', 'AST', 'ST', 'BLK', 'TO']:
-    p = plot_weekly_stats(plot_df=df, stat=category) #, plot_team='Olly-G Anunoby')
+    p = plot_weekly_stats(plot_df=df, stat=category, 
+                          next_opp_id=next_week_opp_id[-1], 
+                          next_opp_name=next_week_opp_name)
     plot_list.append(p)
 
 
 bokeh.plotting.output_file('index.html')
 show(bokeh.layouts.gridplot(plot_list, ncols=2))
+
+
 
 
