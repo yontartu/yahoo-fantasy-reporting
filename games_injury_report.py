@@ -6,7 +6,7 @@ import numpy as np
 import datetime
 import json
 import bokeh
-# import pretty_errors
+import pretty_errors
 from bokeh.plotting import figure, output_notebook, show#, vplot
 from bokeh.palettes import Spectral11
 from bokeh.models import Legend, LegendItem
@@ -160,7 +160,7 @@ games = pd.DataFrame()
 
 for date in week_range:
     print(date)
-    new_df = ScoreboardV2(game_date=date).get_data_frames()[0]
+    new_df = ScoreboardV2(game_date=date, timeout=200).get_data_frames()[0]
     games = pd.concat([games, new_df], sort=False)
     
 games['home_team'] = games.GAMECODE.str[-3:]
